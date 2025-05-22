@@ -53,7 +53,7 @@ with st.sidebar:
 # Load model
 try:
     pipeline = joblib.load('xgboost_model_new.pkl')
-    tenure_pipeline = joblib.load('tenure_model_new.pkl')
+    # tenure_pipeline = joblib.load('tenure_model_new.pkl')
 except Exception as e:
     st.error(f"Error loading model: {str(e)}")
     st.stop()
@@ -96,12 +96,12 @@ preprocessor = ColumnTransformer(transformers=[
 ])
 
 # Tenure regressor pipeline
-tenure_numerical_features = [f for f in numerical_features if f != 'Tenure']
-tenure_preprocessor = ColumnTransformer(transformers=[
-    ('num', numerical_transformer, tenure_numerical_features),
-    ('ord', ordinal_transformer, ordinal_features),
-    ('nom', nominal_transformer, nominal_features)
-])
+# tenure_numerical_features = [f for f in numerical_features if f != 'Tenure']
+# tenure_preprocessor = ColumnTransformer(transformers=[
+#     ('num', numerical_transformer, tenure_numerical_features),
+#     ('ord', ordinal_transformer, ordinal_features),
+#     ('nom', nominal_transformer, nominal_features)
+# ])
 # tenure_pipeline = Pipeline(steps=[
 #     ('preprocessor', tenure_preprocessor),
 #     ('regressor', RandomForestRegressor(random_state=42))
@@ -177,9 +177,9 @@ def process_predictions(df):
     # if 'Tenure' not in df.columns:
     #     df['Predicted Tenure'] = tenure_pipeline.predict(X)
     # else:
-    X['Tenure'] = df['Tenure'].loc[X.index]
-    X = X.drop('Tenure', axis=1)
-    df['Predicted Tenure'] = tenure_pipeline.predict(X)
+    # X['Tenure'] = df['Tenure'].loc[X.index]
+    # X = X.drop('Tenure', axis=1)
+    # df['Predicted Tenure'] = tenure_pipeline.predict(X)
     
     # Calculate SHAP values for feature importance
     try:
