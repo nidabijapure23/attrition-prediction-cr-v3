@@ -374,8 +374,8 @@ if uploaded_file:
             all_predictions = all_predictions.reset_index().rename(columns={'index': 'SR.No.'})
             
             # Calculate Actual Tenure and Variation
-            all_predictions['Actual Tenure'] = all_predictions.apply(calculate_tenure, axis=1)
-            all_predictions['Variation'] = all_predictions['Predicted Tenure'] - all_predictions['Actual Tenure']
+            # all_predictions['Actual Tenure'] = all_predictions.apply(calculate_tenure, axis=1)
+            # all_predictions['Variation'] = all_predictions['Predicted Tenure'] - all_predictions['Actual Tenure']
             
             # Select columns for output
             output_cols = ['SR.No.', 'Employee ID', 'Attrition Prediction', 'Risk Level', 'Attrition Probability', 
