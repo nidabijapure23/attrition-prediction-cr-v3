@@ -350,9 +350,9 @@ if uploaded_file:
                 false_positives.index = false_positives.index + 1
                 false_positives.index.name = "SR.No."
                 # Calculate Actual Tenure
-                false_positives['Actual Tenure'] = false_positives.apply(calculate_tenure, axis=1)
+                # false_positives['Actual Tenure'] = false_positives.apply(calculate_tenure, axis=1)
                 # Calculate Variation
-                false_positives['Variation'] = false_positives['Predicted Tenure'] - false_positives['Actual Tenure']
+                # false_positives['Variation'] = false_positives['Predicted Tenure'] - false_positives['Actual Tenure']
                 display_cols = ['Employee ID', 'Attrition Prediction', 'Risk Level', 'Triggers']
                 st.dataframe(false_positives[display_cols], use_container_width=True)
                 
