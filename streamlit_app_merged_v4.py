@@ -208,7 +208,7 @@ def save_false_positives_to_sheet(false_positives_df):
             false_positives_df['OPS_comments'] = ''
         
         # Select and order columns for saving
-        save_cols = ['Employee ID', 'Attrition Prediction', 'Attrition Probability', 'Risk Level', 'Triggers', 
+        save_cols = ['SR.No.','Employee ID', 'Attrition Prediction', 'Attrition Probability', 'Risk Level', 'Triggers', 
                     'Prediction_Date', 'HR_Comments', 'OPS_comments', 'Cost Center']
         
         # Get current data from sheet
@@ -330,7 +330,7 @@ if uploaded_file:
                 # false_positives['Actual Tenure'] = false_positives.apply(calculate_tenure, axis=1)
                 # Calculate Variation
                 # false_positives['Variation'] = false_positives['Predicted Tenure'] - false_positives['Actual Tenure']
-                display_cols = ['Employee ID', 'Attrition Prediction', 'Risk Level', 'Triggers']
+                display_cols = ['SR.No.','Employee ID', 'Attrition Prediction', 'Risk Level', 'Triggers']
                 st.dataframe(false_positives[display_cols], use_container_width=True)
                 
                 # Save false positives to Google Sheet
