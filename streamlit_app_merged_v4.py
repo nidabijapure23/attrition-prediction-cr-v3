@@ -207,19 +207,19 @@ def save_false_positives_to_sheet(false_positives_df):
         if 'OPS_comments' not in false_positives_df.columns:
             false_positives_df['OPS_comments'] = ''
         
-        # Add SR.No. column
-        false_positives_df = false_positives_df.reset_index(drop=True)
-        false_positives_df.index = false_positives_df.index + 1
-        false_positives_df = false_positives_df.reset_index().rename(columns={'index': 'SR.No.'})
-        
-        # Select and order columns for saving
-        save_cols = ['SR.No.', 'Employee ID', 'Attrition Prediction', 'Attrition Probability', 'Risk Level', 'Triggers', 
-                    'Prediction_Date', 'HR_Comments', 'OPS_comments', 'Cost Center']
-        
         # Get current data from sheet
         current_df = get_sheet_data(SPREADSHEET_ID, TRACKING_SHEET_RANGE)
+        
+        # Select and order columns for saving
+        save_cols = ['Employee ID', 'Attrition Prediction', 'Attrition Probability', 'Risk Level', 'Triggers', 
+                    'Prediction_Date', 'HR_Comments', 'OPS_comments', 'Cost Center']
+        
         if current_df is None:
-            # If sheet is empty, create new
+            # If sheet is empty, create new with SR.No.
+            false_positives_df = false_positives_df.reset_index(drop=True)
+            false_positives_df.index = false_positives_df.index + 1
+            false_positives_df = false_positives_df.reset_index().rename(columns={'index': 'SR.No.'})
+            save_cols = ['SR.No.'] + save_cols
             return append_sheet_data(SPREADSHEET_ID, TRACKING_SHEET_RANGE, false_positives_df[save_cols])
         
         # Combine existing and new data
