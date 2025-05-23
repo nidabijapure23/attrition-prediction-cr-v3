@@ -58,7 +58,7 @@ with st.sidebar:
 # Load model
 try:
     pipeline = joblib.load('xgboost_model_new.pkl')
-    # tenure_pipeline = joblib.load('tenure_model_new.pkl')
+    tenure_pipeline = joblib.load('tenure_model_new.pkl')
 except Exception as e:
     st.error(f"Error loading model: {str(e)}")
     st.stop()
@@ -100,12 +100,12 @@ preprocessor = ColumnTransformer(transformers=[
 ])
 
 # Tenure regressor pipeline
-# tenure_numerical_features = [f for f in numerical_features if f != 'Tenure']
-# tenure_preprocessor = ColumnTransformer(transformers=[
-#     ('num', numerical_transformer, tenure_numerical_features),
-#     ('ord', ordinal_transformer, ordinal_features),
-#     ('nom', nominal_transformer, nominal_features)
-# ])
+tenure_numerical_features = [f for f in numerical_features if f != 'Tenure']
+tenure_preprocessor = ColumnTransformer(transformers=[
+    ('num', numerical_transformer, tenure_numerical_features),
+    ('ord', ordinal_transformer, ordinal_features),
+    ('nom', nominal_transformer, nominal_features)
+])
 
 # Risk bucketing function
 def bucketize_risk(prob):
@@ -133,7 +133,7 @@ def process_predictions(df):
         df['Attrition'] = np.where((df['Active Status'] == 'Yes') & (df['Termination Date - All'].isna()), 0, 1)
     df['Hire Date'] = pd.to_datetime(df['Hire Date'], format='%d-%m-%Y', errors='coerce')
     df['Termination Date - All'] = pd.to_datetime(df['Termination Date - All'], format='%d-%m-%Y', errors='coerce')
-    # df['Tenure'] = df.apply(calculate_tenure, axis=1)
+    df['Tenure'] = df.apply(calculate_tenure, axis=1)
     
     # Prepare features for prediction
     feature_cols = numerical_features + ordinal_features + nominal_features + ['Cost Center']
@@ -161,9 +161,9 @@ def process_predictions(df):
         print("Error during prediction:", str(e))
         raise e
     
-    # X['Tenure'] = df['Tenure'].loc[X.index]
-    # X = X.drop('Tenure', axis=1)
-    # df['Predicted Tenure'] = tenure_pipeline.predict(X)
+    X['Tenure'] = df['Tenure'].loc[X.index]
+    X = X.drop('Tenure', axis=1)
+    df['Predicted Tenure'] = tenure_pipeline.predict(X)
     
     try:
         explainer = shap.TreeExplainer(pipeline.named_steps['classifier'])
@@ -337,10 +337,10 @@ if uploaded_file:
                 false_positives.index = false_positives.index + 1
                 false_positives.index.name = "SR.No."
                 # Calculate Actual Tenure
-                # false_positives['Actual Tenure'] = false_positives.apply(calculate_tenure, axis=1)
+                false_positives['Actual Tenure'] = false_positives.apply(calculate_tenure, axis=1)
                 # Calculate Variation
-                # false_positives['Variation'] = false_positives['Predicted Tenure'] - false_positives['Actual Tenure']
-                display_cols = ['Employee ID', 'Attrition Prediction', 'Risk Level', 'Triggers']
+                false_positives['Variation'] = false_positives['Predicted Tenure'] - false_positives['Actual Tenure']
+                display_cols = ['Employee ID', 'Attrition Prediction', 'Risk Level', 'Triggers', 'Cost Center']
                 st.dataframe(false_positives[display_cols], use_container_width=True)
                 
                 # Save false positives to Google Sheet
@@ -361,8 +361,8 @@ if uploaded_file:
             all_predictions = all_predictions.reset_index().rename(columns={'index': 'SR.No.'})
             
             # Calculate Actual Tenure and Variation
-            # all_predictions['Actual Tenure'] = all_predictions.apply(calculate_tenure, axis=1)
-            # all_predictions['Variation'] = all_predictions['Predicted Tenure'] - all_predictions['Actual Tenure']
+            all_predictions['Actual Tenure'] = all_predictions.apply(calculate_tenure, axis=1)
+            all_predictions['Variation'] = all_predictions['Predicted Tenure'] - all_predictions['Actual Tenure']
             
             # Select columns for output
             output_cols = ['SR.No.', 'Employee ID', 'Attrition Prediction', 'Risk Level', 'Attrition Probability', 
