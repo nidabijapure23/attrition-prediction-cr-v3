@@ -58,7 +58,7 @@ with st.sidebar:
 # Load model
 try:
     pipeline = joblib.load('xgboost_model_new.pkl')
-    # tenure_pipeline = joblib.load('tenure_model_new.pkl')
+    tenure_pipeline = joblib.load('tenure_model_new.pkl')
 except Exception as e:
     st.error(f"Error loading model: {str(e)}")
     st.stop()
@@ -100,12 +100,12 @@ preprocessor = ColumnTransformer(transformers=[
 ])
 
 # Tenure regressor pipeline
-# tenure_numerical_features = [f for f in numerical_features if f != 'Tenure']
-# tenure_preprocessor = ColumnTransformer(transformers=[
-#     ('num', numerical_transformer, tenure_numerical_features),
-#     ('ord', ordinal_transformer, ordinal_features),
-#     ('nom', nominal_transformer, nominal_features)
-# ])
+tenure_numerical_features = [f for f in numerical_features if f != 'Tenure']
+tenure_preprocessor = ColumnTransformer(transformers=[
+    ('num', numerical_transformer, tenure_numerical_features),
+    ('ord', ordinal_transformer, ordinal_features),
+    ('nom', nominal_transformer, nominal_features)
+])
 
 # Risk bucketing function
 def bucketize_risk(prob):
@@ -161,9 +161,9 @@ def process_predictions(df):
         print("Error during prediction:", str(e))
         raise e
     
-    # X['Tenure'] = df['Tenure'].loc[X.index]
-    # X = X.drop('Tenure', axis=1)
-    # df['Predicted Tenure'] = tenure_pipeline.predict(X)
+    X['Tenure'] = df['Tenure'].loc[X.index]
+    X = X.drop('Tenure', axis=1)
+    df['Predicted Tenure'] = tenure_pipeline.predict(X)
     
     try:
         explainer = shap.TreeExplainer(pipeline.named_steps['classifier'])
@@ -207,8 +207,13 @@ def save_false_positives_to_sheet(false_positives_df):
         if 'OPS_comments' not in false_positives_df.columns:
             false_positives_df['OPS_comments'] = ''
         
+        # Add SR.No. column
+        false_positives_df = false_positives_df.reset_index(drop=True)
+        false_positives_df.index = false_positives_df.index + 1
+        false_positives_df = false_positives_df.reset_index().rename(columns={'index': 'SR.No.'})
+        
         # Select and order columns for saving
-        save_cols = ['SR.No.','Employee ID', 'Attrition Prediction', 'Attrition Probability', 'Risk Level', 'Triggers', 
+        save_cols = ['SR.No.', 'Employee ID', 'Attrition Prediction', 'Attrition Probability', 'Risk Level', 'Triggers', 
                     'Prediction_Date', 'HR_Comments', 'OPS_comments', 'Cost Center']
         
         # Get current data from sheet
@@ -221,6 +226,11 @@ def save_false_positives_to_sheet(false_positives_df):
         combined_df = pd.concat([current_df, false_positives_df[save_cols]], ignore_index=True)
         # Remove any duplicates based on Employee ID and Prediction_Date
         combined_df = combined_df.drop_duplicates(subset=['Employee ID', 'Prediction_Date'])
+        
+        # Reindex SR.No. for the combined dataframe
+        combined_df = combined_df.reset_index(drop=True)
+        combined_df.index = combined_df.index + 1
+        combined_df = combined_df.reset_index().rename(columns={'index': 'SR.No.'})
         
         # Save back to sheet
         return update_sheet_data(SPREADSHEET_ID, TRACKING_SHEET_RANGE, combined_df)
@@ -292,7 +302,7 @@ if uploaded_file:
             summary_df = pd.DataFrame(summary_data)
             summary_df = summary_df.sort_values(by='Count', ascending=False)
             summary_df.index = summary_df.index + 1
-            summary_df.index.name = "SR. No."
+            summary_df.index.name = "SR.No."
 
             # Graphical risk level summary
             def highlight_risk(row):
@@ -325,12 +335,12 @@ if uploaded_file:
                 false_positives = false_positives.sort_values(by='Attrition Probability', ascending=False)
                 false_positives = false_positives.reset_index(drop=True)
                 false_positives.index = false_positives.index + 1
-                false_positives.index.name = "SR. No."
+                false_positives.index.name = "SR.No."
                 # Calculate Actual Tenure
-                # false_positives['Actual Tenure'] = false_positives.apply(calculate_tenure, axis=1)
+                false_positives['Actual Tenure'] = false_positives.apply(calculate_tenure, axis=1)
                 # Calculate Variation
-                # false_positives['Variation'] = false_positives['Predicted Tenure'] - false_positives['Actual Tenure']
-                display_cols = ['SR. No.', 'Employee ID', 'Attrition Prediction', 'Risk Level', 'Triggers']
+                false_positives['Variation'] = false_positives['Predicted Tenure'] - false_positives['Actual Tenure']
+                display_cols = ['Employee ID', 'Attrition Prediction', 'Risk Level', 'Triggers']
                 st.dataframe(false_positives[display_cols], use_container_width=True)
                 
                 # Save false positives to Google Sheet
@@ -351,8 +361,8 @@ if uploaded_file:
             all_predictions = all_predictions.reset_index().rename(columns={'index': 'SR.No.'})
             
             # Calculate Actual Tenure and Variation
-            # all_predictions['Actual Tenure'] = all_predictions.apply(calculate_tenure, axis=1)
-            # all_predictions['Variation'] = all_predictions['Predicted Tenure'] - all_predictions['Actual Tenure']
+            all_predictions['Actual Tenure'] = all_predictions.apply(calculate_tenure, axis=1)
+            all_predictions['Variation'] = all_predictions['Predicted Tenure'] - all_predictions['Actual Tenure']
             
             # Select columns for output
             output_cols = ['SR.No.', 'Employee ID', 'Attrition Prediction', 'Risk Level', 'Attrition Probability', 
