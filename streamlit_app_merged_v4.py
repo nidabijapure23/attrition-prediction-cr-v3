@@ -207,6 +207,20 @@ def save_false_positives_to_sheet(false_positives_df):
         if 'OPS_comments' not in false_positives_df.columns:
             false_positives_df['OPS_comments'] = ''
         
+        # Clean and format the data
+        false_positives_df = false_positives_df.fillna('')  # Replace NaN with empty string
+        
+        # Convert numeric columns to string format
+        if 'Attrition Probability' in false_positives_df.columns:
+            false_positives_df['Attrition Probability'] = false_positives_df['Attrition Probability'].apply(lambda x: f"{x:.2%}" if pd.notnull(x) else '')
+        
+        # Clean string columns
+        string_columns = ['Employee ID', 'Attrition Prediction', 'Risk Level', 'Triggers', 
+                         'HR_Comments', 'OPS_comments', 'Cost Center']
+        for col in string_columns:
+            if col in false_positives_df.columns:
+                false_positives_df[col] = false_positives_df[col].astype(str).replace('nan', '')
+        
         # Get current data from sheet
         current_df = get_sheet_data(SPREADSHEET_ID, TRACKING_SHEET_RANGE)
         
@@ -231,6 +245,9 @@ def save_false_positives_to_sheet(false_positives_df):
         combined_df = combined_df.reset_index(drop=True)
         combined_df.index = combined_df.index + 1
         combined_df = combined_df.reset_index().rename(columns={'index': 'SR.No.'})
+        
+        # Ensure all data is properly formatted before saving
+        combined_df = combined_df.fillna('')  # Replace any remaining NaN values
         
         # Save back to sheet
         return update_sheet_data(SPREADSHEET_ID, TRACKING_SHEET_RANGE, combined_df)
