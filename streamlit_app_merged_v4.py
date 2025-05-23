@@ -357,7 +357,7 @@ if uploaded_file:
                 # false_positives['Actual Tenure'] = false_positives.apply(calculate_tenure, axis=1)
                 # Calculate Variation
                 # false_positives['Variation'] = false_positives['Predicted Tenure'] - false_positives['Actual Tenure']
-                display_cols = ['Employee ID', 'Attrition Prediction', 'Risk Level', 'Triggers', 'Cost Center']
+                display_cols = ['Employee ID', 'Attrition Prediction', 'Attrition Probability', 'Risk Level', 'Triggers', 'Cost Center']
                 st.dataframe(false_positives[display_cols], use_container_width=True)
                 
                 # Save false positives to Google Sheet
