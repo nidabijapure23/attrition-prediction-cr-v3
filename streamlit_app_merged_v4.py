@@ -292,7 +292,7 @@ if uploaded_file:
             summary_df = pd.DataFrame(summary_data)
             summary_df = summary_df.sort_values(by='Count', ascending=False)
             summary_df.index = summary_df.index + 1
-            summary_df.index.name = "SR.No."
+            summary_df.index.name = "SR. No."
 
             # Graphical risk level summary
             def highlight_risk(row):
@@ -325,12 +325,12 @@ if uploaded_file:
                 false_positives = false_positives.sort_values(by='Attrition Probability', ascending=False)
                 false_positives = false_positives.reset_index(drop=True)
                 false_positives.index = false_positives.index + 1
-                false_positives.index.name = "SR.No."
+                false_positives.index.name = "SR. No."
                 # Calculate Actual Tenure
                 # false_positives['Actual Tenure'] = false_positives.apply(calculate_tenure, axis=1)
                 # Calculate Variation
                 # false_positives['Variation'] = false_positives['Predicted Tenure'] - false_positives['Actual Tenure']
-                display_cols = ['SR.No.','Employee ID', 'Attrition Prediction', 'Risk Level', 'Triggers']
+                display_cols = ['SR. No.', 'Employee ID', 'Attrition Prediction', 'Risk Level', 'Triggers']
                 st.dataframe(false_positives[display_cols], use_container_width=True)
                 
                 # Save false positives to Google Sheet
